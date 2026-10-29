@@ -1,14 +1,14 @@
 # API 계약서와 Postman 실습
 
-이 문서는 현재 서버 코드의 요청·응답·제한을 정리합니다. 처음 용어를 배우는 사람은 [README](../README.md)의 API와 네트워크 설명을 먼저 읽어도 됩니다.
-기준 주소는 로컬 `http://127.0.0.1:3000`입니다. 운영에서는 본인의 실제 HTTPS 주소를 사용합니다. `203.0.113.10`은 설명용 주소입니다.
+현재 서버가 받는 요청과 돌려주는 응답, 입력 한도를 정리했습니다. API·네트워크 용어가 낯설다면 [README](../README.md)의 설명부터 읽어도 됩니다.
+로컬 기준 주소는 `http://127.0.0.1:3000`이고 운영에서는 본인의 실제 HTTPS 주소를 사용합니다. 문서의 `203.0.113.10`은 설명용 주소입니다.
 
 ## 1. 공통 약속
 
 일반 입력은 `Content-Type: application/json`의 JSON 객체입니다. 배열·문자열만 보내는 요청은 허용하지 않습니다.
 본문이 비어 있는 작업도 필요한 곳에는 `{}`를 보냅니다. 사진 업로드는 `multipart/form-data`의 `files` 파일 항목입니다.
 
-일반 성공은 HTTP 200과 다음 형태입니다. 생성·삭제도 200을 반환합니다.
+일반 요청이 성공하면 생성·삭제를 포함해 HTTP 200과 다음 형태의 응답을 돌려줍니다.
 
 ```json
 {
@@ -28,7 +28,7 @@
 }
 ```
 
-사진 조회 성공은 이미지 바이트입니다. 실패는 안전한 JSON 오류입니다.
+사진 조회에 성공하면 이미지 바이트를, 실패하면 안전한 JSON 오류를 반환합니다.
 `GET /api/health`는 간단한 웹 서버 응답이며 공통 requestId가 없습니다. DB·AI·스토리지 점검도 하지 않습니다.
 
 ## 2. 전체 경로
@@ -50,7 +50,7 @@
 | POST | `/api/memories/{id}/answers` | questionId·answer·skipped | 다음 질문 또는 완료된 memory |
 | POST | `/api/memories/{id}/draft` | regenerate·version 선택 | 초안 memory |
 
-`configured:true`는 필수 설정이 존재한다는 뜻이며 실제 외부 접속 성공을 보장하지 않습니다. `aiModels`도 실행 코드의 설정 정보입니다.
+`configured:true`는 필수 설정값의 존재만 확인합니다. 값이 실제로 유효한지, 외부 접속이 성공하는지는 별도로 시험해야 합니다. `aiModels` 역시 실행 코드에 지정한 모델 정보입니다.
 
 ## 3. 기록 생성
 
@@ -62,8 +62,8 @@
 }
 ```
 
-date는 실제 `YYYY-MM-DD` 날짜여야 합니다. place는 문자열이어야 하며 모르면 빈 문자열을 보냅니다.
-questionLimit은 정수 1~10입니다. 생략하면 3입니다. 옛 기록에 필드가 없으면 3개로 해석합니다.
+date에는 실제 `YYYY-MM-DD` 날짜를, place에는 문자열을 보내야 합니다. 장소를 모르면 빈 문자열을 보냅니다.
+questionLimit은 정수 1~10이며 생략하면 3을 사용합니다. 이 필드가 없는 옛 기록도 3개로 해석합니다.
 생성 응답의 `data.memory.id`를 뒤 요청에 사용합니다. 새 기록의 status는 upload, version은 1입니다.
 소유자별 최대 기록 수는 두 실행 모드 모두 100개입니다.
 
@@ -93,7 +93,7 @@ Body를 form-data로 고르고 Key를 files, 종류를 File로 지정합니다. 
 }
 ```
 
-questionId는 가장 최근의 아직 답하지 않은 질문 ID입니다. skipped는 실제 boolean이어야 합니다. 문자열 `"false"`는 거절합니다.
+questionId에는 가장 최근의 아직 답하지 않은 질문 ID를 넣습니다. skipped는 실제 boolean이어야 하며 문자열 `"false"`는 거절합니다.
 건너뛰지 않는 답변은 공백 제거 후 비어 있지 않아야 하며 2,000자 이하입니다.
 건너뛰기에는 `skipped:true`를 사용합니다. 서버는 해당 답변을 빈 문자열로 저장합니다.
 모든 질문을 건너뛰어 실제 답변이 하나도 없게 되는 마지막 건너뛰기는 400 ANSWER_REQUIRED입니다.
@@ -113,7 +113,7 @@ questionId는 가장 최근의 아직 답하지 않은 질문 ID입니다. skipp
 { "regenerate": true, "version": 5 }
 ```
 
-5는 예시입니다. 실제 최신 version을 사용합니다. regenerate는 boolean일 때만 허용합니다.
+5는 예시이므로 실제 요청에는 최신 version을 넣습니다. regenerate는 boolean일 때만 허용합니다.
 재작성은 draft에서만 가능합니다. saved에는 409 DRAFT_REQUIRED입니다. 버전이 다르면 409 VERSION_CONFLICT입니다.
 질문·답변은 유지하지만 제목·본문은 교체되므로 직접 수정한 내용은 먼저 보관합니다.
 
@@ -134,9 +134,9 @@ draft·saved에서만 저장할 수 있고 성공하면 status는 saved, version
 
 ## 8. 공개 필드와 보안
 
-memory는 id·date·place·status·title·content·turns·version·createdAt·updatedAt·mode·photos·questionLimit·draftSource·preservedAnswerCount·writingModel을 제공합니다.
-photos는 id·name·앱 조회 url을 제공합니다. 내부 key·checksum·버킷·소유자 해시·관찰문은 공개 응답에서 제외합니다.
-turns에는 질문·답변·건너뛰기와 질문 생성 출처 등이 포함됩니다. 이는 사용자의 내용이므로 응답을 공개 자료로 그대로 쓰지 않습니다.
+memory에는 id·date·place·status·title·content·turns·version·createdAt·updatedAt·mode·photos·questionLimit·draftSource·preservedAnswerCount·writingModel이 들어 있습니다.
+photos에는 id·name·앱 조회 url을 담고 내부 key·checksum·버킷·소유자 해시·관찰문은 공개 응답에서 제외합니다.
+turns에는 질문·답변·건너뛰기와 질문 생성 출처 등이 있습니다. 사용자 내용이 담기므로 응답을 공개 자료로 그대로 쓰지 않습니다.
 새 질문은 설명·마크다운 없이 120자 이내의 한국어 질문 하나로 검사합니다. 부적절한 형식은 준비된 관점 질문으로 대체할 수 있습니다.
 기존 질문의 확실한 Q1·Markdown 포장은 공개 응답의 표시용 복사본에서 정리합니다. DB 원문·질문 ID·답변은 유지하고 불명확한 옛 값은 그대로 남길 수 있습니다.
 
@@ -159,9 +159,9 @@ turns에는 질문·답변·건너뛰기와 질문 생성 출처 등이 포함�
 | HCX-005 호출 | 기본 30초 |
 | 저장소 요청 | 20초 |
 
-요청 수 제한은 프로세스 메모리에 있어 다중 서버 전체를 통제하지 않습니다.
-응답 시간 초과만으로 저장 실패를 확정하지 않습니다. 재조회 후 상태를 확인하고 같은 작업을 재시도합니다.
-DB 거래와 외부 사진·AI는 하나의 분산 거래가 아닙니다. 외부 과금을 정확히 한 번으로 보장하지 않습니다.
+요청 수는 각 프로세스의 메모리에서 제한하므로 여러 서버를 합친 전체 요청 수까지 통제하지는 않습니다.
+응답 시간이 초과돼도 저장은 끝났을 수 있습니다. 기록을 다시 조회해 상태를 확인한 뒤 재시도합니다.
+DB 거래와 외부 사진·AI 처리를 한꺼번에 확정하거나 취소하는 분산 거래는 없으며 외부 과금이 정확히 한 번만 발생한다는 보장도 없습니다.
 
 ## 10. 처음 실습할 순서
 
