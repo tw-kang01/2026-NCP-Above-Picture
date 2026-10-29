@@ -455,6 +455,14 @@ CLOVA_STUDIO_API_KEY=
 
 위 내용은 파일에 적을 설정이며 터미널에 실행하는 명령이 아닙니다. IP는 실제 공인 IP로 바꾸고 `PGHOST`에는 DB의 실제 Private 호스트를 넣습니다. DB 이름과 사용자를 다른 이름으로 만들었다면 예시의 `memorydb`, `memoryapp`도 맞춰야 합니다.
 
+설정값에 `#`나 공백이 있으면 값 전체를 큰따옴표로 감쌉니다. 따옴표 없는 `#` 뒷부분은 앱에서 주석으로 읽을 수 있어 DB 비밀번호가 잘릴 수 있습니다. 인증값을 복사할 때 앞뒤에 공백을 덧붙이지 마세요. 현재 앱은 인증값의 앞뒤 공백을 제거해서 사용합니다. 다음은 비밀번호가 아닌 일반 문구로 보여 주는 문법 예시입니다. 이 예시 변수를 앱 설정에 추가할 필요는 없습니다.
+
+```dotenv
+EXAMPLE_TEXT="sample#text with spaces"
+```
+
+Next.js는 `$NAME`을 다른 변수의 값으로 바꾸기도 합니다. DB 비밀번호 등에 문자 `$` 자체가 들어가면 파일에 `\$`로 적습니다. 이 규칙은 Next.js 앱이 설정을 읽는 방식이며 뒤의 `node --env-file` 점검은 일부 문자를 다르게 해석합니다. 특수문자가 있는 CLOVA 키로 직접 점검한 결과는 [설정 파일 해석 차이](docs/NCLOUD_SETUP.md#설정-파일의-특수문자와-직접-점검)를 함께 확인합니다. [Next.js 환경 변수 안내](https://nextjs.org/docs/app/guides/environment-variables#referencing-other-variables)에서도 문자 `$` 표기를 확인할 수 있습니다.
+
 `APP_PUBLIC_ORIGIN`은 브라우저가 접속할 공개 주소입니다. 아직 HTTP를 설치하는 단계이므로 `http://`와 `APP_COOKIE_SECURE=false`로 시작합니다. HTTPS 스크립트가 나중에 서비스의 공개 주소와 쿠키 설정을 함께 전환합니다.
 
 nano에서는 `Ctrl+O`로 저장을 요청하고 Enter로 파일 이름을 확정한 다음 `Ctrl+X`로 나옵니다. 비밀값을 확인하려고 파일 전체를 채팅에 붙여 넣지 않습니다. 비밀값에 `NEXT_PUBLIC_`을 붙이면 브라우저로 노출될 수 있으므로 설정 이름도 임의로 바꾸지 않습니다.
