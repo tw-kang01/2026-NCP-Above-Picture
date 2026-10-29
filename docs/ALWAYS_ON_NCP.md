@@ -17,31 +17,34 @@ NCP 서버는 운영 중으로 유지해야 합니다.
 
 ## 2. 코드 준비
 
-새 설치는 [NCP 설정](NCLOUD_SETUP.md)을 완료합니다. 업데이트라면 현재 기록과 비밀 설정을 보존한 채 코드를 교체합니다.
+새 설치는 [메인 README의 처음 배포](../README.md#5-ncp-서버에-처음-설치하고-공개하기)를 차례로 따라갑니다. 이 문서는 서비스 구조를 다시 확인할 때 보는 보충 설명입니다. 업데이트 전체 순서는 [기존 서버 업데이트](../README.md#6-운영-중인-ncp-서버를-새-버전으로-바꾸기)에 있으며 현재 기록과 비밀 설정을 보존한 뒤 코드를 교체합니다.
 Git으로 설치했다면 서버 작업 폴더의 변경 상태를 확인한 뒤 최신 커밋을 반영합니다. 개인 설정을 무조건 덮어쓰지 않습니다.
 ZIP 방식은 PC의 공개 저장소에서 다음처럼 준비합니다.
 
 ```powershell
-git add .
-& .\scripts\package-update.ps1
+Set-Location "$env:USERPROFILE\Documents\projects\2026-NCP-Above-Picture"
+New-Item -ItemType Directory -Force .\artifacts
+& .\scripts\package-update.ps1 -OutputDirectory .\artifacts
 ```
 
-새 파일을 ZIP에 포함하려면 먼저 Git 추적 목록에 추가해야 합니다. 스크립트는 현재 공개본을 검사한 뒤 프로젝트 상위 폴더에 새 ZIP을 만듭니다.
-출력 폴더를 바꾸려면 `-OutputDirectory`를 지정합니다. 생성된 파일의 경로를 확인하고 PC에서 전송합니다.
+새 공개 파일을 작성했다면 필요한 파일만 먼저 `git add`로 추적 목록에 추가해야 ZIP에 포함됩니다. 이미 내려받은 공개본을 그대로 묶는 경우에는 추가할 필요가 없습니다. 위 명령은 공개본을 검사한 뒤 `artifacts`에 새 ZIP을 만듭니다. 옵션을 생략하면 기본 출력 위치는 프로젝트 상위 폴더입니다. 실제 clone 위치가 다르면 경로를 맞춘 뒤 PC에서 전송합니다.
 
 ```powershell
-scp "$env:USERPROFILE\Documents\photo-memory-update.zip" "root@203.0.113.10:/root/"
+scp "$env:USERPROFILE\Documents\projects\2026-NCP-Above-Picture\artifacts\photo-memory-update.zip" "root@203.0.113.10:/root/"
 ```
 
 위 로컬 경로는 예시이므로 실제 생성된 경로로 바꿉니다. password가 나오면 서버 인증을 입력합니다.
 
 ## 3. 서버에서 업데이트·빌드
 
-압축은 `photo-memory-app/`을 최상위 폴더로 포함합니다. 서버 Bash에서 적용합니다.
+압축을 풀기 전에 [메인 README 6-4](../README.md#6-4-서버-원본과-실제-운영-설정을-백업하기)의 서버 백업과 설정 동기화를 끝냅니다. 설치 도구는 `/root/photo-memory-app/.env.local`을 `/srv/photo-memory-app/.env.local`로 복사하므로 운영 설정이 최신이라면 원본 쪽에도 먼저 보존해야 합니다. 백업 실패 상태에서는 다음 명령을 실행하지 않습니다.
+
+압축은 `photo-memory-app/`을 최상위 폴더로 포함합니다. 백업을 확인한 뒤 서버 Bash에서 한 줄씩 적용하며 오류가 나면 다음 줄을 실행하지 않습니다.
 
 ```bash
 unzip -o /root/photo-memory-update.zip -d /root
 cd /root/photo-memory-app
+if [[ -f /root/.nvm/nvm.sh ]]; then source /root/.nvm/nvm.sh; fi
 npm ci
 npm run build
 ```
