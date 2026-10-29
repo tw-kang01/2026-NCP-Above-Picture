@@ -1,0 +1,22 @@
+# 설치·실행 과정의 생성물과 개인 데이터는 공개하지 않습니다.
+node_modules/
+.next/
+.data/
+artifacts/
+.cache/
+# 설정 예제만 공개하고 실제 키와 비밀번호는 제외합니다.
+.env*
+!.env.example
+*.log
+*.pem
+*.key
+*.pfx
+*.p12
+*.sqlite*
+*.db
+presentation/
+docs/screenshots/
+*.zip*
+*.tmp
+.DS_Store
+Thumbs.db

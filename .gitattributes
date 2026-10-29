@@ -1,0 +1,13 @@
+# Bash가 Windows 줄바꿈을 명령 일부로 읽지 않도록 LF를 사용합니다.
+* text=auto eol=lf
+*.sh text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.ps1 text eol=lf
+*.png binary
+*.woff2 binary
+# 배포된 글꼴의 라이선스는 줄바꿈·공백까지 원문 그대로 보존합니다.
+public/fonts/LICENSE-NanumSquareNeo.txt -text -whitespace

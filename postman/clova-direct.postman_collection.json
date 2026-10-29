@@ -1,0 +1,65 @@
+{
+  "info": {
+    "name": "CLOVA Studio — 직접 호출 1회 점검",
+    "description": "실제 모델 호출로 사용량이 발생합니다. Collection Variables의 clova_api_key에 개인 테스트 키를 로컬에서 넣으세요. 키가 들어간 파일이나 환경을 공유하지 마세요. 이 파일에는 키가 포함되어 있지 않습니다. Request Body는 JSON, Authorization은 Bearer Token입니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "clova_api_key",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "HCX-DASH-002 텍스트 호출",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{clova_api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "https://clovastudio.stream.ntruss.com/v3/chat-completions/HCX-DASH-002",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"사진을 보며 자신의 기억을 떠올리도록 돕는 짧은 질문 하나를 한국어로 만들어줘.\"\n    }\n  ],\n  \"maxTokens\": 128,\n  \"temperature\": 0.3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('provider status is successful', function () { pm.expect(String(pm.response.json().status.code)).to.eql('20000'); });",
+              "pm.test('text exists', function () { pm.expect(pm.response.json().result.message.content).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

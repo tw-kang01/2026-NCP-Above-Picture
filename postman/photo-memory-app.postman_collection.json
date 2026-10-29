@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "사진 너머 — 완성 앱 API 실습",
+    "description": "GET 앱 정보로 익명 쿠키를 받은 후 하나씩 실행하세요. Postman은 브라우저와 별도 사용자입니다. 사진 files를 실제 File로 선택해야 합니다. APP_MODE=ncloud에서는 실제 사용량/저장 비용이 발생합니다. 삭제 요청은 본인이 만든 테스트 기록에만 마지막에 실행합니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "memory_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "question_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memory_version",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "record_title",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "record_content",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 · 앱 모드 확인 + 익명 세션 발급",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/app"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 · 기억 만들기",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/memories",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"date\": \"2026-10-23\",\n  \"place\": \"기억나는 장소를 직접 입력\",\n  \"questionLimit\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 · 사진 1~3장 업로드",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/api/memories/{{memory_id}}/photos",
+        "description": "Body form-data의 files를 File로 두고 실제 JPEG/PNG/WebP를 선택. 여러 장이면 같은 files 이름의 File 행을 추가. 각5MiB이하, 전체3장. Content-Type 직접 입력 금지.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 · 사진에서 첫 질문 만들기",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/memories/{{memory_id}}/start",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 · 현재 질문에 답변 (선택한 질문 수만큼 반복)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/memories/{{memory_id}}/answers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"questionId\": \"{{question_id}}\",\n  \"answer\": \"그때 있었던 일을 자기 말로 바꿔 적어주세요.\",\n  \"skipped\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 · 내 답변으로 초안 만들기",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/memories/{{memory_id}}/draft",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 · 제목/글 확인 후 저장",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/memories/{{memory_id}}",
+        "description": "pre-request가 직전에 받은 초안을 안전한 JSON 문자열로 구성합니다. 아래 스크립트의 title/content를 자기 글로 수정할 수도 있습니다.",
+        "body": {
+          "mode": "raw",
+          "raw": "{{save_payload}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set('save_payload', JSON.stringify({ title: pm.collectionVariables.get('record_title'), content: pm.collectionVariables.get('record_content'), version: Number(pm.collectionVariables.get('memory_version')) }));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 · 내 기록 목록",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/memories"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 · 기록 상세 / 최신 version 읽기",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/memories/{{memory_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 · 테스트 기록과 사진 삭제 (주의)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{base_url}}/api/memories/{{memory_id}}",
+        "description": "실제 사진과 기록을 삭제합니다. 본인이 방금 만든 테스트 기록에만 실행하세요."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('ok=true',()=>pm.expect(pm.response.json().ok).to.eql(true));",
+              "const body=pm.response.json();",
+              "if(body.ok && body.data.memory) { const m=body.data.memory; pm.collectionVariables.set('memory_id',m.id); pm.collectionVariables.set('memory_version',m.version); const active=m.turns.find(t=>t.answer===null); if(active) pm.collectionVariables.set('question_id',active.id); if(m.title) pm.collectionVariables.set('record_title',m.title); if(m.content) pm.collectionVariables.set('record_content',m.content); }"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
